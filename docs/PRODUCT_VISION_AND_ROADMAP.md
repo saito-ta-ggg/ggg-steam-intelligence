@@ -7,14 +7,29 @@ The goal is **not** merely a BigQuery sales dashboard and is **not** to clone an
 
 The core differentiator is a unified product/event/performance timeline where GGG can relate Steam product/store changes, pricing and promotions, player/review signals, and GGG actual commercial results.
 
+## Product principle: visualization first
+The product succeeds when users can **see relationships and changes**, not merely retrieve rows or metrics.
+
+Primary UX should make it easy to visually answer questions such as:
+- What happened to sales before, during and after a discount?
+- Did CCU, reviews and sales move together around an update?
+- Which countries reacted most strongly to a promotion?
+- Did return rate change around a release, update, package change or sale?
+- Which DLC accelerated or declined during the same period?
+
+Where metrics share a useful time axis, prefer coordinated charts and event overlays over isolated tables. Tables remain available for exact values and export, but visualization is the primary analytical surface.
+
 ## Design principles
-1. Prefer official Steam/public APIs and GGG-owned data over scraping when possible.
-2. Do not fabricate unavailable values or present estimates as actuals.
-3. Keep external/public signals and GGG-authoritative financial data provenance-visible.
-4. Build reusable app/package/DLC models rather than hard-coding RPG Maker MZ.
-5. Preserve historical observations so changes can be analyzed over time.
-6. Treat external sites as feature-discovery references, not data sources unless their terms and technical interfaces explicitly permit reuse.
-7. Every metric should have a documented source, grain, refresh cadence, and confidence/authority level.
+1. **Visualization-first.** Design data collection and APIs around the visual questions the product must answer.
+2. **Phased ingestion.** Do not block the product on data sources that are not currently obtainable. Ship useful visualizations with available sources, then add new layers as Review API, Store API or other sources become available.
+3. Prefer official Steam/public APIs and GGG-owned data over scraping when possible.
+4. Do not fabricate unavailable values or present estimates as actuals.
+5. Keep external/public signals and GGG-authoritative financial data provenance-visible.
+6. Build reusable app/package/DLC models rather than hard-coding RPG Maker MZ.
+7. Preserve historical observations so changes can be analyzed over time.
+8. Treat external sites as feature-discovery references, not data sources unless their terms and technical interfaces explicitly permit reuse.
+9. Every metric should have a documented source, grain, refresh cadence, and confidence/authority level.
+10. A missing source must degrade explicitly: `available`, `not connected`, `not currently obtainable`, or `no observation for period`. Never silently substitute another source.
 
 ## Capability map
 
@@ -54,6 +69,8 @@ The core differentiator is a unified product/event/performance timeline where GG
 - Review-score changes over time
 - Language/country breakdown where source data supports it
 - Review event overlays on the unified timeline
+
+If review data is not yet obtainable through the chosen API/source, the Review surface remains visibly `not connected` rather than blocking other timeline layers.
 
 ### E. Updates / product activity
 - Steam news/update posts
@@ -95,6 +112,22 @@ The core differentiator is a unified product/event/performance timeline where GG
 - Product health/watchlist view
 - Optional public competitor mode, clearly separated from GGG actuals
 
+## Visualization architecture
+The central visual object is a **unified time axis**. Each available source contributes one or more layers:
+
+- GGG actual sales / units / return rate
+- price and discount
+- promotion / sale periods
+- CCU / player activity
+- review count / score
+- update / build / news events
+- package / DLC events
+- manually curated GGG events when no canonical machine-readable source exists
+
+Users must be able to toggle layers without changing the underlying period, scope or product. Event markers should be clickable and expose provenance. Numerical layers should support exact-value tables beneath or beside charts.
+
+The implementation must allow a layer to be absent without breaking the timeline. A source can be added later without redesigning the whole page.
+
 ## Source strategy
 
 ### Tier 1 — authoritative
@@ -113,19 +146,48 @@ The core differentiator is a unified product/event/performance timeline where GG
 
 Do not make SteamDB, IsThereAnyDeal, steam-stats.com or similar sites runtime dependencies merely because they are feature references.
 
+## Data availability states
+Every planned source/capability should have one of these explicit states:
+
+- **Available now** — source and acquisition path confirmed; implementation may proceed.
+- **Available, not connected** — source exists but ingestion/integration has not been built.
+- **Investigating** — technical or licensing/API feasibility is unresolved.
+- **Not currently obtainable** — known desired data, but no approved acquisition path exists now.
+
+Roadmap phases are based on these states, not on pretending all target data is available at once.
+
 ## Delivery roadmap
 
 ### Phase 1 — foundation (completed / mock)
 Reusable product-detail UI and financial domain model with mock fixtures.
 
-### Phase 2A — GGG actuals
-Connect the existing repository boundary to BigQuery read-only data, reconcile MZ against authoritative monthly figures, preserve all metric/scope tests, and resolve or visibly label accounting open questions.
+### Phase 2A — GGG actuals + financial visualization
+Connect the existing repository boundary to BigQuery read-only data, reconcile MZ against authoritative monthly figures, preserve all metric/scope tests, and replace mock financial charts/tables with GGG actuals.
 
-### Phase 2B — official/public Steam ingestion foundation
-Create source adapters and historical snapshot storage for product metadata, current prices, reviews, player counts, news/updates and package/DLC relationships. Every observation stores source and observed-at time.
+Deliver useful production-like visualization immediately from the data already controlled by GGG:
+- sales and units trends
+- return-rate trends
+- country and DLC comparisons
+- discount/sales overlays where price data is already available
 
-### Phase 2C — unified timeline
-Merge GGG sales, price/discount, player/review, update/build and promotion/event signals into a single timeline with filters and provenance.
+### Phase 2B — available public Steam observations
+Implement only sources whose acquisition path is currently confirmed. Create source adapters and historical snapshot storage with source and `observed_at` provenance.
+
+Candidate layers include, where confirmed obtainable:
+- public player counts / CCU
+- product/package/DLC metadata
+- pricing/discount observations
+- public news/update markers
+
+Review API, Store API and other desired sources are **not prerequisites** if their acquisition path is not yet confirmed.
+
+### Phase 2C — unified visual timeline
+Create the reusable visualization layer that combines all data available from 2A/2B on one time axis. The timeline must work with partial source coverage and show unavailable layers as such.
+
+Acceptance target: for RPG Maker MZ, a user can select a period and visually compare the available combinations of sales, units, returns, discounts, CCU and events without navigating across disconnected reports.
+
+### Phase 2D — source expansion
+As acquisition paths are confirmed, add Review API / Store API / richer package/build/store metadata and other sources as new observation adapters and timeline layers. Adding these must not require redesigning the core visualization architecture.
 
 ### Phase 3 — deeper intelligence
 Regional pricing, historical lows, richer package/depot/build history, authorized external-store/deal/bundle data, portfolio comparison, anomaly detection and event-impact analysis.
@@ -134,9 +196,11 @@ Regional pricing, historical lows, richer package/depot/build history, authorize
 Production SSO/RBAC, scheduled ingestion, freshness/SLA monitoring, data-quality alerts, Cloud Run deployment, portfolio watchlists and recurring management/marketing views.
 
 ## Immediate implementation gate
-Before adding large amounts of UI, define a `SourceObservation`/provenance model and ingestion contracts so public-source history is retained rather than fetched only at page-view time. The product's value depends on historical change analysis.
+Before adding many source-specific screens, define a reusable `SourceObservation` / provenance model and a unified timeline contract. Public-source history must be retained rather than fetched only at page-view time because historical change analysis is core product value.
 
-Phase 2A and Phase 2B can proceed in parallel as separate adapters/storage concerns. BigQuery integration must not become the architecture of the whole product; it is one authoritative source among several.
+Phase 2A can begin immediately. Phase 2B proceeds source-by-source as acquisition feasibility is confirmed. Phase 2C should begin as soon as at least two useful time-series/event layers can be displayed together; it does not wait for every desired API.
+
+BigQuery integration must not become the architecture of the whole product; it is one authoritative source among several.
 
 ## Current business decisions still to resolve
 - Arbitrary-range monetary aggregation
