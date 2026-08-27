@@ -43,9 +43,15 @@
     from Revenue Share. Confirm whether Phase 2 must source it, since its absence
     makes internal NET incomplete for titles that have Market activity.
 17. **Multi-currency price observations.** `base_price`/`sale_price` are local
-    minor units, so a single day carries several prices. The pricing timeline
-    picks the highest-volume observation per day. Confirm whether a designated
-    reference currency should be used instead.
+    minor units, so a single day carries several prices. **Resolved for Phase 1:**
+    the price observation is pinned to a single reference market, **US / USD**;
+    within that market the observation backed by the most gross units sets the
+    day's price, and a day with no US/USD row reports `No data` rather than
+    borrowing another market's currency. Unit and USD money columns are not
+    restricted by this and continue to cover the whole selected scope. The market
+    is stated in the UI wherever a price or observed discount appears. Confirm
+    whether US/USD is the right reference market for the business, and whether a
+    per-market pricing view is needed in a later phase.
 18. **Retail activation scope.** Retail rows are excluded from every financial
     figure and surfaced only as activation counts. Confirm which team owns the
     Retail view and whether it needs its own tab in a later phase.

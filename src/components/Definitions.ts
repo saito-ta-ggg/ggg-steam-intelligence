@@ -18,7 +18,9 @@ export const DEFINITIONS = {
   returnRate: 'Return Rate = -SUM(gross_units_returned) / SUM(gross_units_sold).',
   salesShare: "Share of the current scope's Gross Sales in the selected date range.",
   effectiveDiscount:
-    'Observed effective discount = 100 x (base_price - sale_price) / base_price when base_price > 0. Preferred over total_discount_percentage alone, which can miss bundle adjustments.',
+    'Observed effective discount = 100 x (base_price - sale_price) / base_price when base_price > 0. Preferred over total_discount_percentage alone, which can miss bundle adjustments. Prices are local-currency minor units, so the observation is taken from the US / USD reference market only; mixing markets would compare different currencies.',
+  referenceMarket:
+    'Phase 1 pricing reference market: US / USD. base_price and sale_price are local-currency minor units, so a day carries a different price in every country. Only the price observation is market-pinned — unit and USD money columns cover the whole selected scope.',
   activations:
     'Retail / CD-key activation units. Activations are not Steam Store revenue and are never added to sales figures.',
   fineGrain:

@@ -27,7 +27,10 @@ export function row(overrides: Partial<DetailedSalesRow> = {}): DetailedSalesRow
     additional_revenue_share_tier: null,
     base_price: null,
     sale_price: null,
-    currency: null,
+    // The default row is a US row, so its currency is the reference currency.
+    // Leaving this null made the defaults internally inconsistent and hid the
+    // fact that price observations are market-pinned.
+    currency: 'USD',
     total_discount_percentage: null,
     combined_discount_id: null,
     gross_units_activated: 0,

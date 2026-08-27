@@ -12,7 +12,7 @@ import {
 } from '@/domain/format';
 import { loadPageContext } from '@/lib/pageContext';
 import { OVERVIEW_METRICS, buildHref, type SearchParams } from '@/lib/params';
-import { DETECTED_DISCOUNT_LABEL } from '@/domain/pricing';
+import { DETECTED_DISCOUNT_LABEL, PRICING_REFERENCE_MARKET_LABEL } from '@/domain/pricing';
 
 export default async function OverviewPage({
   params,
@@ -214,8 +214,8 @@ export default async function OverviewPage({
         <div className="section-head">
           <h2>Recent detected periods</h2>
           <span className="section-note">
-            Derived from observed prices. No canonical event source is connected, so no event name is shown and no
-            causal relationship is implied.
+            Derived from observed {PRICING_REFERENCE_MARKET_LABEL} prices. No canonical event source is connected, so
+            no event name is shown and no causal relationship is implied.
           </span>
         </div>
         <div className="panel table-wrap">
@@ -224,7 +224,7 @@ export default async function OverviewPage({
               <tr>
                 <th>Period</th>
                 <th>Type</th>
-                <th className="num">Max observed discount</th>
+                <th className="num">Max observed discount ({PRICING_REFERENCE_MARKET_LABEL})</th>
                 <th className="num">Gross Sales</th>
                 <th className="num">Gross Units</th>
                 <th className="num">Return Rate</th>

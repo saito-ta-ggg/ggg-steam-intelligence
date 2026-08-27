@@ -124,7 +124,7 @@ export class MockSalesRepository implements SalesRepository {
       .sort((a, b) => b.grossSales - a.grossSales);
   }
 
-  async getDlcPerformance(primaryAppId: number, dateRange: DateRange): Promise<DlcPerformanceRow[]> {
+  async getPackagePerformance(primaryAppId: number, dateRange: DateRange): Promise<DlcPerformanceRow[]> {
     const product = requireProduct(primaryAppId);
     const rows = mockRows().filter(
       (row) =>
@@ -144,6 +144,13 @@ export class MockSalesRepository implements SalesRepository {
         ...computeFineGrainMetrics(packageRows),
       }))
       .sort((a, b) => b.grossSales - a.grossSales);
+  }
+
+  async getDlcPerformance(primaryAppId: number, dateRange: DateRange): Promise<DlcPerformanceRow[]> {
+    // DLC only: base and bundle packages are filtered out here, mirroring the
+    // NOT IN UNNEST(@nonDlcPackageIds) predicate in buildDlcPerformanceQuery.
+    const all = await this.getPackagePerformance(primaryAppId, dateRange);
+    return all.filter((row) => row.kind === 'dlc');
   }
 
   async getRetailActivations(scope: Scope, dateRange: DateRange): Promise<RetailActivationRow[]> {
@@ -194,7 +201,7 @@ export class MockSalesRepository implements SalesRepository {
       comparison,
       daily,
       topCountries: topCountries.slice(0, 8),
-      topDlc: dlc.filter((row) => row.kind === 'dlc').slice(0, 8),
+      topDlc: dlc.slice(0, 8),
       detectedDiscountPeriods: [...pricing.periods].reverse().slice(0, 8),
     };
   }

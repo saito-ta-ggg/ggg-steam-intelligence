@@ -110,69 +110,15 @@ describe('BigQuery stays server-side', () => {
   });
 });
 
-describe('detailed_sales SQL obeys the warehouse rules', () => {
-  const sqlModule = read(join(SRC, 'data', 'bigquery', 'sql.ts'));
-
-  /** Each exported template literal, so every query is checked individually. */
-  const queries = [...sqlModule.matchAll(/export const (\w+_SQL) = `([\s\S]*?)`;/g)].map((match) => ({
-    name: match[1]!,
-    body: match[2]!,
-  }));
-
-  it('exports queries to check', () => {
-    expect(queries.length).toBeGreaterThan(4);
-  });
-
-  it('gives every query a date partition filter', () => {
-    const offenders = queries
-      .filter((query) => !/\bdate BETWEEN @startDate AND @endDate\b/.test(query.body) && !/\$\{SCOPE_PREDICATE\}/.test(query.body))
-      .map((query) => query.name);
-    expect(offenders).toEqual([]);
-  });
-
-  it('has a date partition filter in the shared scope predicate', () => {
-    expect(sqlModule).toMatch(/SCOPE_PREDICATE = `[\s\S]*?date BETWEEN @startDate AND @endDate/);
-  });
-
-  it('uses named parameters and never interpolates a filter value', () => {
-    // Only the table constant and the shared predicate may be interpolated.
-    const allowed = new Set(['${TABLE}', '${SCOPE_PREDICATE}', '${PACKAGE_FILTER}']);
-    const offenders: string[] = [];
-    for (const query of queries) {
-      for (const match of query.body.matchAll(/\$\{[^}]*\}/g)) {
-        if (!allowed.has(match[0])) offenders.push(`${query.name}: ${match[0]}`);
-      }
-    }
-    expect(offenders).toEqual([]);
-  });
-
-  it('never uses ABS() in a financial calculation', () => {
-    // The header comment states the rule, so only executable SQL is inspected.
-    expect(stripComments(sqlModule)).not.toMatch(/\bABS\s*\(/i);
-  });
-
-  it('never substitutes ROUND or FLOOR for the calendar-month TRUNC', () => {
-    // ROUND is permitted only where METRICS.md prescribes it: ROUND(net, 3) inside
-    // the basic 70% component, and the final ROUND to cents on the additional tier.
-    const monthly = queries.find((query) => query.name === 'MONTHLY_SALES_SQL')!;
-    expect(monthly.body).not.toMatch(/\bFLOOR\s*\(/i);
-    expect(monthly.body).toContain('SUM(TRUNC(package_month_gross, 2))');
-    expect(monthly.body).toContain('SUM(TRUNC(ROUND(package_month_net, 3) * 0.70, 2))');
-  });
-
-  it('separates Steam Store sales from Retail activations', () => {
-    const dlc = queries.find((query) => query.name === 'DLC_PERFORMANCE_SQL')!;
-    const retail = queries.find((query) => query.name === 'RETAIL_ACTIVATIONS_SQL')!;
-    expect(dlc.body).toContain("package_sale_type = 'Steam'");
-    expect(retail.body).toContain("package_sale_type = 'Retail'");
-    // The retail query exposes activation counts only, never money.
-    expect(retail.body).not.toMatch(/_usd/);
-  });
-
-  it('is read-only', () => {
-    expect(stripComments(sqlModule)).not.toMatch(/\b(INSERT\s+INTO|UPDATE\s+\w+\s+SET|DELETE\s+FROM|MERGE\s+INTO|CREATE\s+(TABLE|VIEW)|DROP\s+\w+|TRUNCATE\s+TABLE)\b/i);
-  });
-});
+/*
+ * The warehouse SQL rules — date partition filter, named parameters only, base
+ * scope restricted to its Package family, no ABS(), no ROUND/FLOOR substituted for
+ * TRUNC, Steam/Retail separation, read-only — are asserted against the built
+ * queries in tests/bigquerySql.test.ts. They used to be checked here by parsing
+ * exported SQL strings, which silently became vacuous once the queries turned into
+ * builder functions: two assertions kept passing against zero parsed queries.
+ * Checking the builders' output instead makes that failure mode impossible.
+ */
 
 describe('financial safeguards in application code', () => {
   it('never calls Math.abs outside the numeric primitives module', () => {

@@ -28,11 +28,11 @@ export default async function PackageDetailPage({
     'dlc',
   );
 
-  const rows = await context.repository.getDlcPerformance(context.product.appId, context.range);
+  const rows = await context.repository.getPackagePerformance(context.product.appId, context.range);
   const row = rows.find((item) => item.packageId === packageId);
   if (!row) notFound();
 
-  const priorRows = await context.repository.getDlcPerformance(context.product.appId, previousRange(context.range));
+  const priorRows = await context.repository.getPackagePerformance(context.product.appId, previousRange(context.range));
   const prior = priorRows.find((item) => item.packageId === packageId);
   const period = formatDateRange(context.range.start, context.range.end);
 

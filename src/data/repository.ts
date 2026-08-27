@@ -39,7 +39,18 @@ export interface SalesRepository {
 
   getCountryPerformance(scope: Scope, dateRange: DateRange): Promise<CountryPerformanceRow[]>;
 
+  /**
+   * DLC only. The base Package family and any bundle packages are excluded, so a
+   * base product can never appear in a DLC list or be counted as DLC revenue.
+   */
   getDlcPerformance(primaryAppId: number, dateRange: DateRange): Promise<DlcPerformanceRow[]>;
+
+  /**
+   * Every package under the AppID, base and bundles included, each labelled with
+   * its kind. Named for what it returns rather than "DLC" so the result cannot be
+   * mistaken for a DLC list.
+   */
+  getPackagePerformance(primaryAppId: number, dateRange: DateRange): Promise<DlcPerformanceRow[]>;
 
   /** Retail/CD-key activations. Activation counts only — never sales revenue. */
   getRetailActivations(scope: Scope, dateRange: DateRange): Promise<RetailActivationRow[]>;

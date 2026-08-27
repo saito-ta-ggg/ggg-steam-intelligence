@@ -1,4 +1,5 @@
 import { formatUnits, formatUsd } from '@/domain/format';
+import { PRICING_REFERENCE_MARKET_LABEL } from '@/domain/pricing';
 import type { DetectedDiscountPeriod } from '@/domain/types';
 
 export interface SeriesPoint {
@@ -93,7 +94,7 @@ export function TimeSeriesChart({ points, label, kind, discountPeriods = [] }: T
             fill="#d2992224"
             stroke="#d2992240"
           >
-            <title>{`Detected discounted period ${band.period.start} – ${band.period.end} (observed effective discount up to ${band.period.maxDiscountPercent.toFixed(2)}%)`}</title>
+            <title>{`Detected discounted period ${band.period.start} – ${band.period.end} (observed effective discount up to ${band.period.maxDiscountPercent.toFixed(2)}% in ${PRICING_REFERENCE_MARKET_LABEL})`}</title>
           </rect>
         ))}
 
@@ -149,7 +150,7 @@ export function TimeSeriesChart({ points, label, kind, discountPeriods = [] }: T
         {bands.length > 0 ? (
           <span>
             <span className="legend-swatch" style={{ background: '#d2992240', border: '1px solid #d29922' }} />
-            Detected discounted period (observed price only — no event name or causal claim)
+            {`Detected discounted period — ${PRICING_REFERENCE_MARKET_LABEL} observed price only, no event name or causal claim`}
           </span>
         ) : null}
       </div>

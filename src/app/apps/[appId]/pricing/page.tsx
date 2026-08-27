@@ -1,7 +1,7 @@
 import { PageControls } from '@/components/PageControls';
 import { InfoTip } from '@/components/InfoTip';
 import { formatDateRange, formatMinorUnits, formatPercentPoints, formatRate, formatUnits, formatUsd } from '@/domain/format';
-import { DETECTED_DISCOUNT_LABEL } from '@/domain/pricing';
+import { DETECTED_DISCOUNT_LABEL, PRICING_REFERENCE_MARKET_LABEL } from '@/domain/pricing';
 import { loadPageContext } from '@/lib/pageContext';
 import type { SearchParams } from '@/lib/params';
 
@@ -26,13 +26,26 @@ export default async function PricingPage({
         between a discount and a change in sales is asserted.
       </div>
 
+      <div className="scope-banner">
+        <span>
+          <strong>Pricing reference market</strong> <span className="mono">{PRICING_REFERENCE_MARKET_LABEL}</span>
+          <InfoTip definition="referenceMarket" />
+        </span>
+        <span>
+          Prices are local-currency minor units, so every price and observed discount below is the{' '}
+          {PRICING_REFERENCE_MARKET_LABEL} observation. Gross Sales, Gross Units and Return Rate are USD/unit figures
+          covering the whole selected scope, not just this market.
+        </span>
+      </div>
+
       <section>
         <div className="section-head">
           <h2>
             Detected discounted periods <InfoTip definition="effectiveDiscount" />
           </h2>
           <span className="section-note">
-            Prices are local-currency minor units taken from the highest-volume observation of each day.
+            Price columns: {PRICING_REFERENCE_MARKET_LABEL}. Within that market the observation backed by the most
+            gross units sets the day&apos;s price.
           </span>
         </div>
         <div className="panel table-wrap">
@@ -41,9 +54,9 @@ export default async function PricingPage({
               <tr>
                 <th>Period</th>
                 <th>Label</th>
-                <th className="num">Base price</th>
-                <th className="num">Sale price</th>
-                <th className="num">Observed effective discount</th>
+                <th className="num">Base price ({PRICING_REFERENCE_MARKET_LABEL})</th>
+                <th className="num">Sale price ({PRICING_REFERENCE_MARKET_LABEL})</th>
+                <th className="num">Observed effective discount ({PRICING_REFERENCE_MARKET_LABEL})</th>
                 <th className="num">Gross Units</th>
                 <th className="num">Gross Sales</th>
                 <th className="num">Return Rate</th>
@@ -75,14 +88,19 @@ export default async function PricingPage({
         <p className="footnote">
           The discount shown is the observed effective discount, 100 × (base_price − sale_price) / base_price, rather
           than <code>total_discount_percentage</code> alone, which can miss bundle adjustments. Bundle participation is
-          reported separately because <code>bundleid IS NOT NULL</code> on its own does not prove a discount.
+          reported separately because <code>bundleid IS NOT NULL</code> on its own does not prove a discount. Choosing
+          a single reference market ({PRICING_REFERENCE_MARKET_LABEL}) is a Phase 1 decision — see{' '}
+          <code>docs/OPEN_QUESTIONS.md</code> #17.
         </p>
       </section>
 
       <section>
         <div className="section-head">
-          <h2>Daily price observations</h2>
-          <span className="section-note">{timeline.points.length} days in range</span>
+          <h2>Daily price observations — {PRICING_REFERENCE_MARKET_LABEL}</h2>
+          <span className="section-note">
+            {timeline.points.length} days in range · a day with no {PRICING_REFERENCE_MARKET_LABEL} observation shows
+            No data rather than borrowing another market&apos;s currency
+          </span>
         </div>
         <div className="panel table-wrap" style={{ maxHeight: 480, overflowY: 'auto' }}>
           <table>

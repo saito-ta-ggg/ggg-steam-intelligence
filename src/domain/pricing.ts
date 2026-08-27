@@ -12,6 +12,30 @@ import type { DetailedSalesRow, DetectedDiscountPeriod, PricingPoint, PricingTim
 
 export const DETECTED_DISCOUNT_LABEL = 'Detected discounted period';
 
+/**
+ * Phase 1 pricing reference market.
+ *
+ * `base_price` and `sale_price` are local-currency minor units (DATA_MODEL.md), so
+ * one day carries a different price in every country. Choosing the day's price
+ * across all countries would compare, say, JPY minor units against USD minor units
+ * and yield a meaningless effective discount, so the price observation is pinned to
+ * a single market. Recorded as a Phase 1 decision in docs/OPEN_QUESTIONS.md #17.
+ *
+ * Money and unit columns are NOT restricted by this: they are USD figures and are
+ * correct summed worldwide. Only the price observation is market-pinned.
+ */
+export const PRICING_REFERENCE_MARKET = { countryCode: 'US', currency: 'USD' } as const;
+
+/** Shown in the UI wherever a price or an observed discount is displayed. */
+export const PRICING_REFERENCE_MARKET_LABEL = 'US / USD';
+
+function isReferenceMarket(row: DetailedSalesRow): boolean {
+  return (
+    row.country_code === PRICING_REFERENCE_MARKET.countryCode &&
+    row.currency === PRICING_REFERENCE_MARKET.currency
+  );
+}
+
 /** A discount is only asserted when an observed effective discount exceeds this. */
 const DISCOUNT_EPSILON = 0.5;
 
@@ -60,8 +84,13 @@ export function buildPricingTimeline(rows: readonly DetailedSalesRow[]): Pricing
     // bundle participation so the UI can show the indicator UI_SPEC.md asks for.
     if (row.bundleid !== null) day.bundleParticipation = true;
 
+    // Price observations come from the reference market only. Within it, the
+    // observation backed by the most gross units wins, so a negligible seller
+    // cannot set the day's price. A day with no reference-market row keeps a null
+    // price and therefore reports no discount, rather than borrowing another
+    // country's currency.
     const weight = row.gross_units_sold;
-    if (row.base_price !== null && weight > day.observationWeight) {
+    if (isReferenceMarket(row) && row.base_price !== null && weight > day.observationWeight) {
       day.observationWeight = weight;
       day.basePrice = row.base_price;
       day.salePrice = row.sale_price;

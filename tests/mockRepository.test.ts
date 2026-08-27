@@ -3,11 +3,13 @@ import { MockSalesRepository } from '@/data/mock/mockRepository';
 import { MOCK_RANGE, mockRows } from '@/data/mock/fixtures';
 import { computeCalendarMonthMetrics, computeFineGrainMetrics } from '@/domain/metrics';
 import { matchesScope, createScope } from '@/domain/scope';
+import { PRICING_REFERENCE_MARKET } from '@/domain/pricing';
 import { monthBounds } from '@/domain/dates';
 import type { DateRange } from '@/domain/types';
 
 const repository = new MockSalesRepository();
 const MZ = 1096900;
+const MV = 363890;
 const RANGE: DateRange = { start: '2025-04-01', end: '2025-06-30' };
 
 describe('mock fixtures', () => {
@@ -171,12 +173,79 @@ describe('MockSalesRepository', () => {
     expect(shareTotal).toBeCloseTo(1, 6);
   });
 
-  it('classifies DLC rows and excludes base packages from the DLC list', async () => {
+  it('returns only DLC from getDlcPerformance — never a base or bundle package', async () => {
     const rows = await repository.getDlcPerformance(MZ, RANGE);
+    expect(rows.length).toBeGreaterThan(0);
+    expect(rows.every((r) => r.kind === 'dlc')).toBe(true);
+    for (const basePackageId of [481511, 369820, 488238]) {
+      expect(rows.some((r) => r.packageId === basePackageId)).toBe(false);
+    }
+  });
+
+  it('excludes the MV Bundle from the MV DLC list', async () => {
+    const rows = await repository.getDlcPerformance(MV, RANGE);
+    expect(rows.some((r) => r.packageId === 88038)).toBe(false);
+    expect(rows.some((r) => r.packageId === 65464 || r.packageId === 80322)).toBe(false);
+    expect(rows.every((r) => r.kind === 'dlc')).toBe(true);
+  });
+
+  it('returns every package, labelled, from getPackagePerformance', async () => {
+    const rows = await repository.getPackagePerformance(MZ, RANGE);
     expect(rows.some((r) => r.kind === 'base')).toBe(true);
-    const dlc = rows.filter((r) => r.kind === 'dlc');
-    expect(dlc.length).toBeGreaterThan(0);
-    expect(dlc.every((r) => ![481511, 369820, 488238].includes(r.packageId))).toBe(true);
+    expect(rows.some((r) => r.kind === 'dlc')).toBe(true);
+    // The DLC list is a strict subset, so a base package can never be double counted.
+    const dlc = await repository.getDlcPerformance(MZ, RANGE);
+    expect(rows.length).toBeGreaterThan(dlc.length);
+    expect(dlc.every((d) => rows.some((r) => r.packageId === d.packageId))).toBe(true);
+  });
+
+  it('keeps base revenue out of the DLC total', async () => {
+    const all = await repository.getPackagePerformance(MZ, RANGE);
+    const dlc = await repository.getDlcPerformance(MZ, RANGE);
+    const baseGross = all.filter((r) => r.kind === 'base').reduce((total, r) => total + r.grossSales, 0);
+    const dlcGross = dlc.reduce((total, r) => total + r.grossSales, 0);
+    expect(baseGross).toBeGreaterThan(0);
+    expect(dlcGross).toBeGreaterThan(0);
+    expect(dlcGross).toBeLessThan(baseGross);
+  });
+
+  it('never puts a base package in the overview top-DLC panel', async () => {
+    const overview = await repository.getAppOverview(createScope(MZ, 'base'), RANGE);
+    expect(overview.topDlc.length).toBeGreaterThan(0);
+    expect(overview.topDlc.every((r) => r.kind === 'dlc')).toBe(true);
+  });
+
+  it('reports pricing in the reference currency only', async () => {
+    const timeline = await repository.getPricingTimeline(createScope(MZ, 'base'), {
+      start: '2025-06-01',
+      end: '2025-07-31',
+    });
+    expect(timeline.points.length).toBeGreaterThan(0);
+    for (const point of timeline.points) {
+      expect(point.currency === null || point.currency === PRICING_REFERENCE_MARKET.currency).toBe(true);
+    }
+    for (const period of timeline.periods) {
+      expect(period.currency === null || period.currency === PRICING_REFERENCE_MARKET.currency).toBe(true);
+    }
+  });
+
+  it('matches the reference-market price against the fixtures rather than another country', async () => {
+    const day = '2025-06-02';
+    const timeline = await repository.getPricingTimeline(createScope(MZ, 'base'), { start: day, end: day });
+    const point = timeline.points.find((item) => item.date === day);
+
+    const referenceRows = mockRows().filter(
+      (row) =>
+        row.date === day &&
+        matchesScope(row, { appId: MZ, kind: 'base', saleType: 'Steam' }) &&
+        row.country_code === PRICING_REFERENCE_MARKET.countryCode &&
+        row.currency === PRICING_REFERENCE_MARKET.currency,
+    );
+    expect(referenceRows.length).toBeGreaterThan(0);
+
+    const expected = referenceRows.reduce((best, row) => (row.gross_units_sold > best.gross_units_sold ? row : best));
+    expect(point?.basePrice).toBe(expected.base_price);
+    expect(point?.salePrice).toBe(expected.sale_price);
   });
 
   it('builds an overview with a comparable preceding period', async () => {

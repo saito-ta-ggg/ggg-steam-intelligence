@@ -43,8 +43,11 @@ export default async function DlcPage({
   searchParams: Promise<SearchParams>;
 }) {
   const context = await loadPageContext(params, searchParams, 'dlc');
-  // DLC is always resolved against the parent AppID, independently of the page scope.
-  const all = await context.repository.getDlcPerformance(context.product.appId, context.range);
+  // Resolved against the parent AppID, independently of the page scope. This is the
+  // all-packages query because the table labels each row's kind and offers a base /
+  // bundle / DLC filter; the default filter below is DLC, and `getDlcPerformance`
+  // is what every DLC-only surface (e.g. Overview's top DLC) uses instead.
+  const all = await context.repository.getPackagePerformance(context.product.appId, context.range);
 
   const rawSort = Array.isArray(context.searchParams.sort) ? context.searchParams.sort[0] : context.searchParams.sort;
   const sortKey: SortKey = SORTABLE.some((item) => item.key === rawSort) ? (rawSort as SortKey) : 'grossSales';
