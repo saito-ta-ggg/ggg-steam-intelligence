@@ -117,6 +117,22 @@ gcloud run deploy ggg-steam-intelligence \
 Authentication for the deployed service is unresolved — see
 `docs/OPEN_QUESTIONS.md` #1 and #2.
 
+## Deploying to Vercel
+
+The repository is a standard root-level Next.js app (App Router, `package.json`
++ `package-lock.json` at the project root), so Vercel's zero-config Next.js
+framework preset applies directly — no wrapper project, monorepo root
+redirect, or `vercel.json` is required. `package.json` pins `engines.node` to
+`>=22.0.0` to match the Node version used in CI (`.github/workflows/ci.yml`)
+and the `Dockerfile`, so Vercel's build environment stays consistent with the
+versions this project is tested against.
+
+`DATA_SOURCE` defaults to `mock` in code (`src/data/index.ts`) when unset, so
+Preview and Production deployments are safe by default even without setting
+the variable in the Vercel dashboard; `bigqueryRepository` throws rather than
+silently reading real data if `DATA_SOURCE=bigquery` is ever set without
+credentials.
+
 ## Mock data
 
 Fixtures are generated deterministically from a seeded PRNG in
