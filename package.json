@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "verify": "npm run lint && npm run typecheck && npm run test"
+    "verify": "npm run lint && npm run typecheck && npm run test",
+    "reconcile": "vitest run tests/reconcileDailySales.test.ts"
   },
   "dependencies": {
     "@google-cloud/bigquery": "^9.0.3",

@@ -97,6 +97,27 @@ empty or fabricated data. Selecting `DATA_SOURCE=bigquery` fails loudly today.
 Credentials are server-side and read-only. No BigQuery value may ever reach a
 `NEXT_PUBLIC_` variable or the browser.
 
+### Reconciling a warehouse export against the timeline
+
+`npm run reconcile` diffs a daily series exported from BigQuery against the daily
+series the app renders, so the two can be compared without giving this repository
+a credential. Export the output of `buildDailySalesQuery` as CSV, keep the header
+row, then:
+
+```bash
+BQ_DAILY_CSV=./export.csv npm run reconcile          # defaults to AppID 1096900, base scope
+BQ_APPID=363890 BQ_SCOPE=app BQ_DAILY_CSV=... npm run reconcile
+BQ_RANGE_TOTAL_GROSS=1234.56 BQ_DAILY_CSV=... npm run reconcile
+```
+
+It first checks the export against the rules in `docs/METRICS.md` — signed
+negative returns, `net = gross + returned`, a consistent return rate — which hold
+for warehouse data whatever the app does, and fail the run when they do not. It
+then diffs row by row against the repository. That diff only *asserts* under
+`DATA_SOURCE=bigquery`; under the Phase 1 mock the fixtures are synthetic, so the
+comparison is printed and explicitly not treated as a pass. Without
+`BQ_DAILY_CSV` the whole file is skipped, so `npm test` stays green offline.
+
 ## Deploying to Cloud Run
 
 The `Dockerfile` builds the `output: 'standalone'` server bundle and runs it as an
