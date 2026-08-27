@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { PageControls } from '@/components/PageControls';
+import { RetailActivationsPanel } from '@/components/RetailActivationsPanel';
 import { KpiCard } from '@/components/KpiCard';
 import { InfoTip } from '@/components/InfoTip';
 import { TimeSeriesChart, type SeriesPoint } from '@/components/TimeSeriesChart';
@@ -32,9 +33,10 @@ export default async function SalesPage({
   const context = await loadPageContext(params, searchParams, 'sales');
   const { repository, scope, range, grain } = context;
 
-  const [totals, priorTotals] = await Promise.all([
+  const [totals, priorTotals, retailActivations] = await Promise.all([
     repository.getRangeTotals(scope, range),
     repository.getRangeTotals(scope, previousRange(range)),
+    repository.getRetailActivations(scope, range),
   ]);
 
   let rows: TableRow[];
@@ -206,6 +208,8 @@ export default async function SalesPage({
             : null}
         </p>
       </section>
+
+      <RetailActivationsPanel rows={retailActivations} />
     </>
   );
 }

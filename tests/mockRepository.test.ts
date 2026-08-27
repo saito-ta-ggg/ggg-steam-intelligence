@@ -76,6 +76,26 @@ describe('MockSalesRepository', () => {
     expect(activations.reduce((total, r) => total + r.unitsActivated, 0)).toBeGreaterThan(0);
   });
 
+  it('reports retail activations per package and territory, never merged under one label', async () => {
+    const rows = await repository.getRetailActivations(createScope(MZ, 'base'), RANGE);
+    expect(rows.length).toBeGreaterThan(1);
+    // Every row's territory must describe that row's own count.
+    const keys = rows.map((row) => `${row.packageId}|${row.territory}`);
+    expect(new Set(keys).size).toBe(rows.length);
+    expect(rows.every((row) => row.unitsActivated > 0)).toBe(true);
+
+    // The per-territory rows must add up to the raw activation total for the scope.
+    const expected = mockRows()
+      .filter(
+        (row) =>
+          row.date >= RANGE.start &&
+          row.date <= RANGE.end &&
+          matchesScope(row, { appId: MZ, kind: 'base', saleType: 'Retail' }),
+      )
+      .reduce((total, row) => total + row.gross_units_activated, 0);
+    expect(rows.reduce((total, row) => total + row.unitsActivated, 0)).toBe(expected);
+  });
+
   it('sums daily fine-grain money back to the range total', async () => {
     const scope = createScope(MZ, 'base');
     const daily = await repository.getDailySales(scope, RANGE);

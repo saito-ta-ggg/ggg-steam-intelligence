@@ -1,0 +1,17 @@
+node_modules
+.next
+.git
+.github
+coverage
+tests
+docs
+*.md
+!README.md
+
+# Never copy secrets into the build context.
+.env
+.env.*
+!.env.example
+*.pem
+*-service-account*.json
+gcloud-key*.json

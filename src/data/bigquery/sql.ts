@@ -163,15 +163,15 @@ ORDER BY gross_sales DESC
 export const RETAIL_ACTIVATIONS_SQL = `
 SELECT
   packageid,
-  ANY_VALUE(package_name)             AS package_name,
-  ANY_VALUE(territory_code_description) AS territory,
-  SUM(gross_units_activated)          AS units_activated
+  ANY_VALUE(package_name)     AS package_name,
+  territory_code_description  AS territory,
+  SUM(gross_units_activated)  AS units_activated
 FROM ${TABLE}
 WHERE date BETWEEN @startDate AND @endDate
   AND line_item_type = 'Package'
   AND package_sale_type = 'Retail'
   AND primary_appid = @primaryAppId
-GROUP BY packageid
+GROUP BY packageid, territory_code_description
 ORDER BY units_activated DESC
 `;
 

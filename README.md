@@ -23,6 +23,10 @@ Implemented against **mock fixtures only**. BigQuery is not connected.
 | Reviews | `data not yet connected` placeholder |
 | Updates | `data not yet connected` placeholder |
 
+Retail / CD-key activations appear as a separate, explicitly labelled panel at the
+bottom of the Sales tab. It carries unit counts and no monetary column at all, so
+there is no figure there that could be added to a sales total by mistake.
+
 ## Getting started
 
 ```bash
@@ -54,8 +58,14 @@ src/data/       Repository boundary. `mock/` today, `bigquery/` in Phase 2.
                 Guarded by `import 'server-only'`.
 src/app/        App Router pages. Server Components fetch through the repository.
 src/components/ Presentation only.
-tests/          Vitest suite for metric formulas and scope rules.
+tests/          Vitest suite for metric formulas, scope rules and architecture guards.
 ```
+
+`tests/architecture.test.ts` enforces the rules in `CLAUDE.md` that no formula test
+can catch, by reading the source tree: no SQL in React components, `server-only`
+on the data-layer boundary, no BigQuery setting behind a `NEXT_PUBLIC_` variable,
+a `date` partition filter on every `detailed_sales` query, named parameters only,
+no `ABS()`, and no `ROUND`/`FLOOR` substituted for the calendar-month `TRUNC`.
 
 ### Rules the code enforces
 
@@ -86,6 +96,25 @@ empty or fabricated data. Selecting `DATA_SOURCE=bigquery` fails loudly today.
 
 Credentials are server-side and read-only. No BigQuery value may ever reach a
 `NEXT_PUBLIC_` variable or the browser.
+
+## Deploying to Cloud Run
+
+The `Dockerfile` builds the `output: 'standalone'` server bundle and runs it as an
+unprivileged user on the `PORT` Cloud Run injects. No credential is baked into the
+image: BigQuery configuration arrives as environment variables and the service
+account attached to the revision, and `.dockerignore` keeps every `.env` and key
+file out of the build context.
+
+```bash
+gcloud builds submit --tag <region>-docker.pkg.dev/<project>/<repo>/ggg-steam-intelligence
+gcloud run deploy ggg-steam-intelligence \
+  --image <region>-docker.pkg.dev/<project>/<repo>/ggg-steam-intelligence \
+  --region <region> --no-allow-unauthenticated \
+  --set-env-vars DATA_SOURCE=mock
+```
+
+Authentication for the deployed service is unresolved — see
+`docs/OPEN_QUESTIONS.md` #1 and #2.
 
 ## Mock data
 

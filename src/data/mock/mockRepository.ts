@@ -148,12 +148,17 @@ export class MockSalesRepository implements SalesRepository {
 
   async getRetailActivations(scope: Scope, dateRange: DateRange): Promise<RetailActivationRow[]> {
     const retailScope: Scope = { ...scope, saleType: 'Retail' };
-    const byPackage = groupBy(this.select(retailScope, dateRange), (row) => row.packageid);
+    // Grouped by package AND territory: collapsing territories into one row while
+    // labelling it with an arbitrary one would misattribute the activations.
+    const byPackageTerritory = groupBy(
+      this.select(retailScope, dateRange),
+      (row) => `${row.packageid}\u0000${row.territory_code_description ?? ''}`,
+    );
 
-    return [...byPackage.entries()]
-      .map(([packageId, rows]) => ({
-        packageId,
-        packageName: rows[0]?.package_name ?? String(packageId),
+    return [...byPackageTerritory.values()]
+      .map((rows) => ({
+        packageId: rows[0]?.packageid ?? 0,
+        packageName: rows[0]?.package_name ?? '',
         territory: rows[0]?.territory_code_description ?? null,
         unitsActivated: rows.reduce((total, row) => total + row.gross_units_activated, 0),
       }))
