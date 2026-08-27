@@ -1,47 +1,63 @@
 /**
  * Display formatting.
  *
- * UI rule: displayed numeric values are rounded to the nearest whole number.
+ * UI rule: sales are rounded to whole dollars; other numeric values display to 1 decimal place.
  * UI_SPEC.md: missing data renders as `No data`, never as zero.
  */
 export const NO_DATA = 'No data';
 
-const usdFormatter = new Intl.NumberFormat('en-US', {
+const salesUsdFormatter = new Intl.NumberFormat('en-US', {
   style: 'currency',
   currency: 'USD',
   minimumFractionDigits: 0,
   maximumFractionDigits: 0,
 });
 
-const integerFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
+const decimalUsdFormatter = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+});
 
-/** USD rounded to the nearest whole dollar. Negative values keep their sign. */
+const decimalFormatter = new Intl.NumberFormat('en-US', {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+});
+
+/** Sales USD rounded to the nearest whole dollar. Negative values keep their sign. */
 export function formatUsd(value: number | null | undefined): string {
   if (value === null || value === undefined || !Number.isFinite(value)) return NO_DATA;
-  return usdFormatter.format(value);
+  return salesUsdFormatter.format(value);
+}
+
+/** Non-sales USD values, such as price, displayed to 1 decimal place. */
+export function formatUsdOneDecimal(value: number | null | undefined): string {
+  if (value === null || value === undefined || !Number.isFinite(value)) return NO_DATA;
+  return decimalUsdFormatter.format(value);
 }
 
 export function formatUnits(value: number | null | undefined): string {
   if (value === null || value === undefined || !Number.isFinite(value)) return NO_DATA;
-  return integerFormatter.format(value);
+  return decimalFormatter.format(value);
 }
 
-/** Rate expressed as a fraction (0.0312) rendered as a rounded whole percentage. */
+/** Rate expressed as a fraction (0.0312) rendered as a percentage to 1 decimal place. */
 export function formatRate(value: number | null | undefined): string {
   if (value === null || value === undefined || !Number.isFinite(value)) return NO_DATA;
-  return `${Math.round(value * 100)}%`;
+  return `${(value * 100).toFixed(1)}%`;
 }
 
-/** Value already expressed in percentage points (31.2) rendered as a rounded whole percentage. */
+/** Value already expressed in percentage points (31.2) rendered to 1 decimal place. */
 export function formatPercentPoints(value: number | null | undefined): string {
   if (value === null || value === undefined || !Number.isFinite(value)) return NO_DATA;
-  return `${Math.round(value)}%`;
+  return `${value.toFixed(1)}%`;
 }
 
-/** Local-currency minor units rounded to a whole major-currency amount. */
+/** Local-currency minor units rendered to 1 decimal place in major-currency units. */
 export function formatMinorUnits(value: number | null | undefined, currency: string | null): string {
   if (value === null || value === undefined || !Number.isFinite(value)) return NO_DATA;
-  return `${Math.round(value / 100)}${currency ? ` ${currency}` : ''}`;
+  return `${(value / 100).toFixed(1)}${currency ? ` ${currency}` : ''}`;
 }
 
 export function formatDateRange(start: string, end: string): string {
@@ -56,7 +72,7 @@ export function relativeDelta(current: number, previous: number): number | null 
 
 export function formatSignedRate(value: number | null | undefined): string {
   if (value === null || value === undefined || !Number.isFinite(value)) return NO_DATA;
-  const rounded = Math.round(value * 100);
-  const sign = rounded > 0 ? '+' : '';
-  return `${sign}${rounded}%`;
+  const percentage = value * 100;
+  const sign = percentage > 0 ? '+' : '';
+  return `${sign}${percentage.toFixed(1)}%`;
 }
