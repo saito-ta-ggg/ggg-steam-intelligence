@@ -32,6 +32,7 @@ React components contain no SQL.
 - `steam_wishlist_daily`: daily wishlist reporting.
 - `steam_store_snapshot`: official/public product/store metadata snapshots.
 - `steam_events`: normalized timeline events with `event_id, appid, event_type, start_at, end_at, name, source, metadata_json`.
+- `steam_ccu_snapshot` (provisional, Phase 2A): AppID x timestamp concurrent-player snapshot. No source is connected yet; see `docs/OPEN_QUESTIONS.md` #19.
 
 ## Performance/security
 Parameterize all filters; require date partition filter; cache common server queries; never query full portfolio on each page load; BigQuery read-only/server-side only.

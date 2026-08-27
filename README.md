@@ -16,6 +16,7 @@ Implemented against **mock fixtures only**. BigQuery is not connected.
 | Tab | State |
 |---|---|
 | Overview | Implemented — KPI cards, daily timeline, top countries, top DLC, detected discounted periods |
+| Timeline (Phase 2A) | Implemented — multi-layer visual timeline with toggles/legend; see `docs/PHASE_2A_TIMELINE.md` for which layers are real data vs. `not_connected` |
 | Sales | Implemented — daily / calendar-month / fiscal-year grains, full metric table |
 | Pricing & Sales | Implemented — observed effective discount, detected periods, daily price observations |
 | Countries | Implemented — ranking, search/region/sort/minimum-units filters, sales share |
