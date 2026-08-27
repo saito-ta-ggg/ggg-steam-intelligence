@@ -14,5 +14,10 @@ next-env.d.ts
 *-service-account*.json
 gcloud-key*.json
 
+# Generated review artefacts (e.g. `git diff main...HEAD > phase1.diff`).
+# These are derived from the branch itself and must not be committed into it.
+*.diff
+*.patch
+
 .DS_Store
 npm-debug.log*
