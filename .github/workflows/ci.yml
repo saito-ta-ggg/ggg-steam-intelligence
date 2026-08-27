@@ -26,3 +26,35 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Install Chromium for visual check
+        run: npx --yes playwright@1.55.0 install --with-deps chromium
+
+      - name: Start app
+        env:
+          DATA_SOURCE: mock
+        run: |
+          npm start > /tmp/ggg-steam-intelligence.log 2>&1 &
+          echo $! > /tmp/ggg-steam-intelligence.pid
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:3000/apps/1096900/timeline >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/ggg-steam-intelligence.log
+          exit 1
+
+      - name: Capture Timeline screenshots
+        run: |
+          mkdir -p artifacts/timeline-screenshots
+          npx --yes playwright@1.55.0 screenshot --device="Desktop Chrome" --full-page http://127.0.0.1:3000/apps/1096900/timeline artifacts/timeline-screenshots/rpg-maker-mz-timeline.png
+          npx --yes playwright@1.55.0 screenshot --device="Desktop Chrome" --full-page http://127.0.0.1:3000/apps/363890/timeline artifacts/timeline-screenshots/rpg-maker-mv-timeline.png
+
+      - name: Upload visual confirmation
+        uses: actions/upload-artifact@v4
+        with:
+          name: timeline-screenshots
+          path: artifacts/timeline-screenshots
+          if-no-files-found: error
+          retention-days: 14
