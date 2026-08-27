@@ -103,7 +103,7 @@ export default async function OverviewPage({
               <Link
                 key={item.key}
                 className="preset"
-                aria-current={item.key === metric.key}
+                aria-current={item.key === metric.key ? 'page' : undefined}
                 href={buildHref(context.pathname, context.searchParams, { metric: item.key })}
               >
                 {item.label}
@@ -111,7 +111,7 @@ export default async function OverviewPage({
             ))}
             <Link
               className="preset"
-              aria-current={context.showDiscountOverlay}
+              aria-current={context.showDiscountOverlay ? 'page' : undefined}
               href={buildHref(context.pathname, context.searchParams, {
                 overlay: context.showDiscountOverlay ? 'off' : 'on',
               })}

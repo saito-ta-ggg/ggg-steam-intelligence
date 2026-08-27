@@ -7,7 +7,7 @@ import { DEFINITIONS, type DefinitionKey } from './Definitions';
 export function InfoTip({ definition }: { definition: DefinitionKey }) {
   const text = DEFINITIONS[definition];
   return (
-    <i className="info" title={text} aria-label={text} role="img">
+    <i className="info" title={text} aria-label={text} role="img" tabIndex={0}>
       i
     </i>
   );

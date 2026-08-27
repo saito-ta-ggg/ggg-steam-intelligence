@@ -111,12 +111,12 @@ export default async function SalesPage({
           </h2>
           <div className="presets">
             {GRAINS.map((item) => (
-              <Link key={item.id} className="preset" aria-current={item.id === grain} href={buildHref(context.pathname, context.searchParams, { grain: item.id })}>
+              <Link key={item.id} className="preset" aria-current={item.id === grain ? 'page' : undefined} href={buildHref(context.pathname, context.searchParams, { grain: item.id })}>
                 {item.label}
               </Link>
             ))}
             {OVERVIEW_METRICS.map((item) => (
-              <Link key={item.key} className="preset" aria-current={item.key === metric.key} href={buildHref(context.pathname, context.searchParams, { metric: item.key })}>
+              <Link key={item.key} className="preset" aria-current={item.key === metric.key ? 'page' : undefined} href={buildHref(context.pathname, context.searchParams, { metric: item.key })}>
                 {item.label}
               </Link>
             ))}

@@ -112,7 +112,7 @@ export function Controls({
             <a
               key={preset.id}
               className="preset"
-              aria-current={activePreset === preset.id}
+              aria-current={activePreset === preset.id ? 'page' : undefined}
               href={withParams({ preset: preset.id, from: null, to: null })}
             >
               {preset.label}
