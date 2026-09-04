@@ -3,9 +3,13 @@
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 
-/** Navigation from docs/REQUIREMENTS.md, in the specified order. */
+/**
+ * Navigation from docs/REQUIREMENTS.md, in the specified order, plus the
+ * Phase 2A `timeline` tab added by docs/PHASE_2A_TIMELINE.md.
+ */
 const TABS = [
   { slug: 'overview', label: 'Overview' },
+  { slug: 'timeline', label: 'Timeline' },
   { slug: 'sales', label: 'Sales' },
   { slug: 'pricing', label: 'Pricing & Sales' },
   { slug: 'countries', label: 'Countries' },

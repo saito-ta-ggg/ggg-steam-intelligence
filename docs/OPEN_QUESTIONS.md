@@ -55,3 +55,14 @@
 18. **Retail activation scope.** Retail rows are excluded from every financial
     figure and surfaced only as activation counts. Confirm which team owns the
     Retail view and whether it needs its own tab in a later phase.
+
+## Raised during Phase 2A implementation
+
+19. **CCU (concurrent players) source.** No table in `docs/DATA_MODEL.md`
+    carries CCU, and the Steamworks partner financial feed (`detailed_sales`)
+    does not include it. The Phase 2A unified timeline (`docs/PHASE_2A_TIMELINE.md`)
+    therefore represents CCU as `not_connected` rather than guessing at a
+    source. Confirm whether CCU should come from a public Steam endpoint
+    (`ISteamUserStats/GetNumberOfCurrentPlayers`), a partner API, or a
+    third-party feed, and add the confirmed shape as a provisional
+    `steam_ccu_snapshot` table.

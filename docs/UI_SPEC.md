@@ -4,7 +4,8 @@
 Internal analytical product: dense but readable, explicit definitions, quick comparison. Do not visually copy SteamDB/ITAD.
 
 ## Global shell
-Product selector; product name/AppID; date range; scope indicator. Tabs: `Overview | Sales | Pricing & Sales | Countries | DLC | Reviews | Updates`.
+Product selector; product name/AppID; date range; scope indicator. Tabs: `Overview | Timeline | Sales | Pricing & Sales | Countries | DLC | Reviews | Updates`.
+`Timeline` (Phase 2A) is documented in `docs/PHASE_2A_TIMELINE.md`.
 
 ## Overview
 KPI cards: Gross Sales, Revenue Share (Internal NET), Net Units, Return Rate. Each shows value, period, definition tooltip and comparable-period delta when available.
@@ -25,6 +26,13 @@ Columns: DLC/Package | Package ID | Gross Sales | Gross Units | Returned Units |
 
 ## Reviews / Updates
 Show clear `data not yet connected` empty states; never fabricate.
+
+## Timeline (Phase 2A)
+Multi-layer visual timeline: one row per layer, sharing one date axis. Layers with real data today (Gross Sales,
+Net Units, Return Rate, Price, observed effective discount) render as bars/lines; layers with no connected source
+(CCU, Reviews, Updates/events) always render as an explicit "Not connected" placeholder, never a fabricated or
+zero value. Toggle links plus a legend let every layer — connected or not — be turned on to evaluate the intended
+combined visualization. Full detail in `docs/PHASE_2A_TIMELINE.md`.
 
 ## Safeguards
 Never mix Retail activation and Store sales without labels. Always show date range/scope. Missing data is `No data`, not zero. Show freshness when available.

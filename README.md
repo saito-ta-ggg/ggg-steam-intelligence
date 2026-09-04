@@ -16,6 +16,7 @@ Implemented against **mock fixtures only**. BigQuery is not connected.
 | Tab | State |
 |---|---|
 | Overview | Implemented — KPI cards, daily timeline, top countries, top DLC, detected discounted periods |
+| Timeline (Phase 2A) | Implemented — multi-layer visual timeline with toggles/legend; see `docs/PHASE_2A_TIMELINE.md` for which layers are real data vs. `not_connected` |
 | Sales | Implemented — daily / calendar-month / fiscal-year grains, full metric table |
 | Pricing & Sales | Implemented — observed effective discount, detected periods, daily price observations |
 | Countries | Implemented — ranking, search/region/sort/minimum-units filters, sales share |
@@ -115,6 +116,22 @@ gcloud run deploy ggg-steam-intelligence \
 
 Authentication for the deployed service is unresolved — see
 `docs/OPEN_QUESTIONS.md` #1 and #2.
+
+## Deploying to Vercel
+
+The repository is a standard root-level Next.js app (App Router, `package.json`
++ `package-lock.json` at the project root), so Vercel's zero-config Next.js
+framework preset applies directly — no wrapper project, monorepo root
+redirect, or `vercel.json` is required. `package.json` pins `engines.node` to
+`>=22.0.0` to match the Node version used in CI (`.github/workflows/ci.yml`)
+and the `Dockerfile`, so Vercel's build environment stays consistent with the
+versions this project is tested against.
+
+`DATA_SOURCE` defaults to `mock` in code (`src/data/index.ts`) when unset, so
+Preview and Production deployments are safe by default even without setting
+the variable in the Vercel dashboard; `bigqueryRepository` throws rather than
+silently reading real data if `DATA_SOURCE=bigquery` is ever set without
+credentials.
 
 ## Mock data
 

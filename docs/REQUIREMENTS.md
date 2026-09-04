@@ -10,6 +10,7 @@ Business owners, marketing, product/DLC staff, management and analysts.
 Reusable app-detail experience. RPG Maker MZ (AppID 1096900) is the validation title; do not hard-code the UI to MZ.
 
 Navigation: `Overview | Sales | Pricing & Sales | Countries | DLC | Reviews | Updates` plus product selector and date range.
+Phase 2A adds a `Timeline` tab (visualization-first foundation) — see `docs/PHASE_2A_TIMELINE.md`.
 
 ### Overview
 Product/AppID; Gross Sales; Revenue Share (internal NET); Gross/Net Units; Return Rate; daily timeline; known promotion/event markers; top countries; top DLC.

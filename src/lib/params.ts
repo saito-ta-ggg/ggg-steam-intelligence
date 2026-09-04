@@ -20,7 +20,8 @@ export const OVERVIEW_METRICS: ReadonlyArray<{ key: OverviewMetric; label: strin
   { key: 'grossUnits', label: 'Gross Units', kind: 'units' },
 ];
 
-function first(value: string | string[] | undefined): string | undefined {
+/** Unwraps a possibly-repeated search param to its first value. Exported for pages with their own params (e.g. Timeline's `layers`). */
+export function first(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
 
