@@ -8,6 +8,7 @@ import {
   formatSignedRate,
   formatUnits,
   formatUsd,
+  formatUsdOneDecimal,
   relativeDelta,
 } from '@/domain/format';
 
@@ -28,36 +29,40 @@ describe('missing data is never rendered as zero', () => {
   });
 
   it('still renders a genuine zero as zero', () => {
-    expect(formatUsd(0)).toBe('$0.00');
-    expect(formatUnits(0)).toBe('0');
-    expect(formatRate(0)).toBe('0.00%');
+    expect(formatUsd(0)).toBe('$0');
+    expect(formatUnits(0)).toBe('0.0');
+    expect(formatRate(0)).toBe('0.0%');
   });
 });
 
-describe('display precision — USD and rates to 2 decimals', () => {
-  it('formats USD to exactly two decimals', () => {
-    expect(formatUsd(1234.5)).toBe('$1,234.50');
-    expect(formatUsd(0.005)).toBe('$0.01');
+describe('display precision — sales as whole dollars and other values to 1 decimal', () => {
+  it('rounds sales USD to whole dollars', () => {
+    expect(formatUsd(1234.5)).toBe('$1,235');
+    expect(formatUsd(0.4)).toBe('$0');
   });
 
   it('keeps the negative sign on returns rather than hiding it', () => {
-    expect(formatUsd(-1234.56)).toBe('-$1,234.56');
+    expect(formatUsd(-1234.56)).toBe('-$1,235');
   });
 
-  it('formats rates as percentages to two decimals', () => {
-    expect(formatRate(0.0154)).toBe('1.54%');
-    expect(formatRate(-0.02)).toBe('-2.00%');
-    expect(formatPercentPoints(66.6666)).toBe('66.67%');
+  it('formats non-sales USD values to one decimal', () => {
+    expect(formatUsdOneDecimal(79.99)).toBe('$80.0');
+  });
+
+  it('formats rates as percentages to one decimal', () => {
+    expect(formatRate(0.0154)).toBe('1.5%');
+    expect(formatRate(-0.02)).toBe('-2.0%');
+    expect(formatPercentPoints(66.6666)).toBe('66.7%');
   });
 
   it('formats local minor units with the currency code', () => {
-    expect(formatMinorUnits(7999, 'USD')).toBe('79.99 USD');
-    expect(formatMinorUnits(848000, 'JPY')).toBe('8480.00 JPY');
-    expect(formatMinorUnits(7999, null)).toBe('79.99');
+    expect(formatMinorUnits(7999, 'USD')).toBe('80.0 USD');
+    expect(formatMinorUnits(848000, 'JPY')).toBe('8480.0 JPY');
+    expect(formatMinorUnits(7999, null)).toBe('80.0');
   });
 
-  it('formats units without decimals', () => {
-    expect(formatUnits(38216)).toBe('38,216');
+  it('formats units to one decimal', () => {
+    expect(formatUnits(38216)).toBe('38,216.0');
   });
 });
 
@@ -68,8 +73,8 @@ describe('comparable-period delta', () => {
   });
 
   it('signs the delta explicitly', () => {
-    expect(formatSignedRate(relativeDelta(120, 100))).toBe('+20.00%');
-    expect(formatSignedRate(relativeDelta(80, 100))).toBe('-20.00%');
+    expect(formatSignedRate(relativeDelta(120, 100))).toBe('+20.0%');
+    expect(formatSignedRate(relativeDelta(80, 100))).toBe('-20.0%');
   });
 });
 
